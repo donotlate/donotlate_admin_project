@@ -1,0 +1,92 @@
+/* 전체 화면 중앙 정렬 */
+.admin-login-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #fcfcfc; /* 배경은 아주 밝게 */
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 1. 박스 밖 제목 스타일 */
+.admin-login-header {
+  text-align: center;
+  margin-bottom: 50px; /* 제목과 박스 사이의 넓은 거리 */
+}
+
+.admin-login-header h1 {
+  font-size: 48px;
+  font-weight: 900;
+  margin: 0;
+  color: #000;
+  letter-spacing: -1.5px;
+}
+
+.admin-login-header p {
+  font-size: 16px;
+  color: #777;
+  margin-top: 10px;
+}
+
+/* 2. 로그인 카드: 가로로 길게 설정 */
+.admin-login-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 600px; /* 폰 UI 느낌 안 나게 가로를 확 넓힘 */
+  padding: 60px 50px; /* 내부 여백 시원하게 */
+  border-radius: 24px;
+  border: 1px solid #eee;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03); /* 아주 연한 그림자 */
+}
+
+/* 입력 필드 */
+.input-row {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.input-row label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.input-row input {
+  width: 100%;
+  height: 56px;
+  padding: 0 20px;
+  font-size: 16px;
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  box-sizing: border-box; 
+  background-color: #fafafa;
+  transition: all 0.2s;
+}
+
+.input-row input:focus {
+  outline: none;
+  border-color: #000;
+  background-color: #fff;
+}
+
+/* 로그인 버튼: 이미지 속 블랙 버튼 */
+.login-btn {
+  width: 100%;
+  height: 60px;
+  background-color:#2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: opacity 0.2s;
+}
+
+.login-btn:hover {
+  opacity: 0.8;
+}
