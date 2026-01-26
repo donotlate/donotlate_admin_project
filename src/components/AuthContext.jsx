@@ -28,7 +28,8 @@ export const AuthProvider= ({ children })=>{
             const resp = await axios.post('http://localhost/admin/adminLogin/',{
                 memberEmail:email,
                 memberPw:password
-            });
+            },{withCredentials: true});
+            
             console.log("서버가 보낸 원본 데이터:", resp.data);
 
             if(resp.data && resp.data.memberEmail){
