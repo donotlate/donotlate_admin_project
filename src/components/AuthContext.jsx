@@ -1,6 +1,7 @@
 import React, { createContext, useState } from 'react';
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
+import { axiosApi } from '../api/axiosAPI';
 
 export const AuthContext = createContext();
 
@@ -22,27 +23,28 @@ export const AuthProvider= ({ children })=>{
 
 
     // 로그인 요청
-    const handleLogin = async(e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        try{
-            const resp = await axios.post('http://localhost/admin/adminLogin/',{
-                memberEmail:email,
-                memberPw:password
-            },{withCredentials: true});
-            
-            console.log("서버가 보낸 원본 데이터:", resp.data);
 
-            if(resp.data && resp.data.memberEmail){
-                console.log("로그인 성공",resp.data);
-                setLoginMember(resp.data);
-                navigate("./admin");
-            }else {
-                alert("아이디 또는 비밀번호를 확인해주세요.");
-            }
-        } catch(error){
-            console.error("서버 통신 에러" ,error);
+    try {
+        const resp = await axios.post("http://localhost/admin/login", {
+            memberEmail: email,
+            memberPw: password
+        });
+
+        console.log("서버 응답:", resp.data);
+
+        if (resp.data?.memberEmail) {
+            setLoginMember(resp.data);
+            navigate("/admin");
+        } else {
+            alert("아이디 또는 비밀번호를 확인해주세요.");
         }
+    } catch (error) {
+        console.error("서버 통신 에러:", error);
+        alert("서버 오류가 발생했습니다.");
     }
+};
 
     // globalState 이 안에 이메일,비밀번호 들어있음
     const globalState = {
