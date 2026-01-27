@@ -104,9 +104,9 @@ const AdminPage = () => {
   return (
 
 
-    <div className="admin-root">
+  <div className="admin-root">
       <header className="gnb">
-    <div className="gnb-inner">
+  <div className="gnb-inner">
       
     <div className="gnb-left">
       <h1 className="logo">관리자 페이지</h1>
