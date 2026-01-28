@@ -44,7 +44,23 @@ export const AuthProvider= ({ children })=>{
         console.error("서버 통신 에러:", error);
         alert("서버 오류가 발생했습니다.");
     }
+
+    
 };
+
+    // 로그아웃
+    const handleLogout = async () => {
+        try{
+            const resp = await axios.get("http://localhost/admin/logout")
+
+            if(resp.status === 200){
+                setLoginMember(null);
+                navigate("/");
+            }
+        }catch(error){
+            console.log("로그아웃 중 에러 발생:" ,error);
+        }
+    }
 
     // globalState 이 안에 이메일,비밀번호 들어있음
     const globalState = {
@@ -53,7 +69,8 @@ export const AuthProvider= ({ children })=>{
     loginMember,
     changeEmail,
     changePassword,
-    handleLogin
+    handleLogin,
+    handleLogout
   };
   
   return(

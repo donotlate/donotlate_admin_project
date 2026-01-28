@@ -3,8 +3,13 @@ import "../css/AdminPage.css";
 import { FaUserPlus, FaFileExport, FaUsers, FaUserCheck, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaSignOutAlt } from "react-icons/fa";
 import { FaUserXmark, FaUserGroup } from "react-icons/fa6";
 import { IoMegaphoneSharp, IoSearch } from "react-icons/io5";
+import { AuthContext } from './AuthContext';
+import { useContext } from "react";
 
 const AdminPage = () => {
+  
+   const globalState = useContext(AuthContext);
+
   // --- 데이터 ---
   const [users, setUsers] = useState([
     { id: 1, name: "김민준", email: "minjun.kim@example.com", role: "일반", status: "active", createdAt: "2024.01.15" },
@@ -26,8 +31,12 @@ const AdminPage = () => {
   const usersPerPage = 10;
 
   const filteredUsers = users
-    .filter(u => (userFilter === "all" || (userFilter === "active" && u.status === "active") || (userFilter === "inactive" && u.status === "inactive") || (userFilter === "admin" && u.role === "관리자") || (userFilter === "normal" && u.role === "일반")))
-    .filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase()));
+    .filter(u => (userFilter === "all" || 
+      (userFilter === "active" && u.status === "active") || 
+      (userFilter === "inactive" && u.status === "inactive") || 
+      (userFilter === "admin" && u.role === "관리자") || 
+      (userFilter === "normal" && u.role === "일반"))) //탭 버튼
+    .filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase())); // 유저 이름 검색 
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const displayedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
@@ -84,15 +93,13 @@ const AdminPage = () => {
     const file = e.target.files[0];
     if(file){
       const reader = new FileReader();
-      reader.onload = () => setSelectedItem({...selectedItem, image: reader.result});
-      reader.readAsDataURL(file);
+      reader.onload = () => setSelectedItem({...selectedItem, image: reader.result}); // onload : 다 읽으면 실행(이미지 미리보기 가능) , FileReader 사용 시 onload 필수
+      reader.readAsDataURL(file); // Base64
     }
   };
 
   
 
-  // --- 로그아웃 ---
-  const handleLogout = () => alert("로그아웃 처리 (추후 구현)");
 
   const moveTo = (id) => {
     document.getElementById(id)?.scrollIntoView({
@@ -128,7 +135,7 @@ const AdminPage = () => {
         <div className="avatar"></div>
       </div>
 
-      <button className="btn-white" onClick={handleLogout}>
+      <button className="btn-white" onClick={globalState.handleLogout}>
         <FaSignOutAlt /> 로그아웃
       </button>
     </div>
