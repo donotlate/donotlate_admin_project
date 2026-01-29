@@ -1,19 +1,36 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../css/AdminPage.css";
 import { FaUserPlus, FaFileExport, FaUsers, FaUserCheck, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaSignOutAlt } from "react-icons/fa";
 import { FaUserXmark, FaUserGroup } from "react-icons/fa6";
 import { IoMegaphoneSharp, IoSearch } from "react-icons/io5";
 import { AuthContext } from './AuthContext';
 import { useContext } from "react";
+import axios from "axios";
 
 const AdminPage = () => {
   
    const globalState = useContext(AuthContext);
 
   // --- 데이터 ---
-  const [users, setUsers] = useState([
-    { id: 1, name: "김민준", email: "minjun.kim@example.com", role: "일반", status: "active", createdAt: "2024.01.15" },
-  ]);
+  const [users, setUsers] = useState([]);
+
+  // --- 유저 조회 ---
+  useEffect(()=>{
+    
+    const getUsers = async()=>{
+      const resp = await axios.get("http://localhost/admin/Users");
+      try{
+  
+          if(resp.status === 200){
+            setUsers(resp.data);
+          }
+      }catch(error){
+        console.log("회원조회 실패" , error);
+      }
+    }
+
+    getUsers();
+  },[]); 
 
   const [notices, setNotices] = useState([
     { id: 1, title: "서비스 점검 안내", content: "서버 점검으로 인해 1시간 서비스 이용이 제한됩니다.", image: null, author: "관리자", date: "2024.01.15", status: "published" },
@@ -30,13 +47,16 @@ const AdminPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
-  const filteredUsers = users
-    .filter(u => (userFilter === "all" || 
-      (userFilter === "active" && u.status === "active") || 
-      (userFilter === "inactive" && u.status === "inactive") || 
-      (userFilter === "admin" && u.role === "관리자") || 
-      (userFilter === "normal" && u.role === "일반"))) //탭 버튼
-    .filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase())); // 유저 이름 검색 
+ const filteredUsers = users
+    .filter(u => {
+      if (userFilter === "all") return true;
+      if (userFilter === "active") return u.memberDelFl === 'N';
+      if (userFilter === "inactive") return u.memberDelFl === 'Y';
+      if (userFilter === "normal") return u.authority === 1; // 일반은 1
+      if (userFilter === "admin") return u.authority === 3;  // 관리자는 3
+      return true;
+    })
+    .filter(u => u.memberName.toLowerCase().includes(userSearch.toLowerCase())); // 유저 이름 검색 
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const displayedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
@@ -56,27 +76,19 @@ const AdminPage = () => {
   };
 
   const handleAddUser = () => {
-    setSelectedItem({ name: "", email: "", role: "일반", status: "active", createdAt: new Date().toISOString().split("T")[0] });
+    setSelectedItem({ memberName: "", memberEmail: "", authority: "일반", memberDelFl: "active", enrollDate:"" });
     setModalType("user");
     setModalOpen(true);
   };
 
-  // --- 상태 토글 ---
-  const toggleStatus = (item, type) => {
-    if(type === "user") {
-      setUsers(users.map(u => u.id === item.id ? { ...u, status: u.status === "active" ? "inactive" : "active" } : u));
-    } else {
-      setNotices(notices.map(n => n.id === item.id ? { ...n, status: n.status === "published" ? "draft" : "published" } : n));
-    }
-  };
 
   // --- 모달 저장 ---
   const saveChanges = () => {
     if(modalType === "user") {
-      if(selectedItem.id){ 
-        setUsers(users.map(u => u.id === selectedItem.id ? selectedItem : u));
+      if(selectedItem.memberNo){ 
+        setUsers(users.map(u => u.memberNo === selectedItem.memberNo ? selectedItem : u));
       } else { 
-        setUsers([...users, { ...selectedItem, id: users.length + 1 }]);
+        setUsers([...users, { ...selectedItem, memberNo: users.length + 1 }]);
       }
     } else if(modalType === "notice") {
       if(selectedItem.id){ 
@@ -174,7 +186,6 @@ const AdminPage = () => {
                   <td>
                     <span 
                       className={notice.status === "published" ? "badge-success" : "badge-draft"}
-                      onClick={() => toggleStatus(notice, "notice")}
                       style={{ cursor: "pointer" }}
                     >
                       {notice.status === "published" ? "게시중" : "임시저장"}
@@ -284,18 +295,17 @@ const AdminPage = () => {
             </thead>
             <tbody>
               {displayedUsers.map(user => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>{user.createdAt}</td>
+                <tr key={user.memberNo}>
+                  <td>{user.memberName}</td>
+                  <td>{user.memberEmail}</td>
+                  <td>{user.authority === 3? "관리자": "일반"}</td>
+                  <td>{user.enrollDate}</td>
                   <td>
                     <span 
-                      className={user.status === "active" ? "dot-active" : "dot-inactive"}
-                      onClick={() => toggleStatus(user, "user")}
+                      className={user.memberDelFl == 'N' ? "dot-active" : "dot-inactive"}
                       style={{ cursor: "pointer" }}
                     >
-                      {user.status === "active" ? "활성" : "비활성"}
+                      {user.memberDelFl == 'N' ? "활성" : "비활성"}
                     </span>
                   </td>
                   <td className="actions">

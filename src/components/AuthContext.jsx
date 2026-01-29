@@ -24,7 +24,6 @@ export const AuthProvider= ({ children })=>{
 
     // 로그인 요청
     const handleLogin = async (e) => {
-        e.preventDefault();
 
     try {
         const resp = await axios.post("http://localhost/admin/login", {
