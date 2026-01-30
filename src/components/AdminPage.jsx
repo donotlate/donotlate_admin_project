@@ -9,7 +9,8 @@ import axios from "axios";
 
 const AdminPage = () => {
   
-   const globalState = useContext(AuthContext);
+  const globalState = useContext(AuthContext);
+  // console.log(globalState);
 
   // --- 데이터 ---
   const [users, setUsers] = useState([]);
@@ -31,6 +32,19 @@ const AdminPage = () => {
 
     getUsers();
   },[]); 
+
+// --- 유저 정보 수정 ---
+const editUser = async (user) => {
+  try {
+    const resp = await axios.put("http://localhost/admin/editUser",user
+    );
+    return resp;
+  } catch (error) {
+    console.log("회원 수정 실패", error);
+  }
+};
+
+
 
   const [notices, setNotices] = useState([
     { id: 1, title: "서비스 점검 안내", content: "서버 점검으로 인해 1시간 서비스 이용이 제한됩니다.", image: null, author: "관리자", date: "2024.01.15", status: "published" },
@@ -70,29 +84,30 @@ const AdminPage = () => {
 
   // --- 새 공지/유저 추가 ---
   const handleAddNotice = () => {
-    setSelectedItem({ title: "", content: "", image: null, author: "관리자", status: "draft", date: new Date().toISOString().split("T")[0] });
+    setSelectedItem([]);
     setModalType("notice");
     setModalOpen(true);
   };
 
   const handleAddUser = () => {
-    setSelectedItem({ memberName: "", memberEmail: "", authority: "일반", memberDelFl: "active", enrollDate:"" });
+    setSelectedItem([]);
     setModalType("user");
     setModalOpen(true);
   };
 
 
   // --- 모달 저장 ---
-  const saveChanges = () => {
+  const saveChanges = async() => {
     if(modalType === "user") {
-      if(selectedItem.memberNo){ 
-        setUsers(users.map(u => u.memberNo === selectedItem.memberNo ? selectedItem : u));
+      if(selectedItem.memberNo){
+        await editUser(selectedItem); // 수정 값
+        setUsers(users.map(u => u.memberNo === selectedItem.memberNo ? selectedItem : u)); // 화면 갱신
       } else { 
         setUsers([...users, { ...selectedItem, memberNo: users.length + 1 }]);
       }
     } else if(modalType === "notice") {
-      if(selectedItem.id){ 
-        setNotices(notices.map(n => n.id === selectedItem.id ? selectedItem : n));
+      if(selectedItem.memberNo){ 
+        setNotices(notices.map(n => n.id === selectedItem.memberNo ? selectedItem : n));
       } else { 
         setNotices([...notices, { ...selectedItem, id: notices.length + 1 }]);
       }
@@ -141,9 +156,10 @@ const AdminPage = () => {
 
     </div>
 
+
     <div className="gnb-right">
       <div className="admin-profile">
-        <span>관리자</span>
+        <span>{globalState.loginMember?.memberName} 관리자님</span>
         <div className="avatar"></div>
       </div>
 
@@ -310,7 +326,7 @@ const AdminPage = () => {
                   </td>
                   <td className="actions">
                     <FaEdit onClick={() => handleEdit(user, "user")} />
-                    <FaTrash onClick={() => alert("유저 삭제 기능 구현 가능")} />
+                    <FaTrash onClick={() => handleRemove()} />
                   </td>
                 </tr>
               ))}
@@ -336,20 +352,20 @@ const AdminPage = () => {
             <div className="modal">
               {modalType==="user" ? (
                 <>
-                  <h3>{selectedItem.id ? "유저 수정" : "새 유저 추가"}</h3>
+                  <h3>{selectedItem.memberNo ? "유저 수정" : "새 유저 추가"}</h3>
                   <label>이름:</label>
-                  <input value={selectedItem.name} onChange={e=>setSelectedItem({...selectedItem, name:e.target.value})}/>
+                  <input value={selectedItem.memberName} onChange={e=>setSelectedItem({...selectedItem, memberName:e.target.value})}/>
                   <label>이메일:</label>
-                  <input value={selectedItem.email} onChange={e=>setSelectedItem({...selectedItem, email:e.target.value})}/>
+                  <input value={selectedItem.memberEmail} onChange={e=>setSelectedItem({...selectedItem, memberEmail:e.target.value})}/>
                   <label>권한:</label>
-                  <select value={selectedItem.role} onChange={e=>setSelectedItem({...selectedItem, role:e.target.value})}>
-                    <option value="일반">일반</option>
-                    <option value="관리자">관리자</option>
+                  <select value={selectedItem.authority} onChange={e=>setSelectedItem({...selectedItem, authority:Number(e.target.value)})}>
+                    <option value={1}>일반</option>
+                    <option value={3}>관리자</option>
                   </select>
                   <label>상태:</label>
-                  <select value={selectedItem.status} onChange={e=>setSelectedItem({...selectedItem, status:e.target.value})}>
-                    <option value="active">활성</option>
-                    <option value="inactive">비활성</option>
+                  <select value={selectedItem.memberDelFl} onChange={e=>setSelectedItem({...selectedItem, memberDelFl:e.target.value})}>
+                    <option value="N">활성</option>
+                    <option value="Y">비활성</option>
                   </select>
                 </>
               ) : (
