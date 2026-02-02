@@ -10,7 +10,6 @@ import axios from "axios";
 const AdminPage = () => {
   
   const globalState = useContext(AuthContext);
-  // console.log(globalState);
 
   // --- 데이터 ---
   const [users, setUsers] = useState([]);
@@ -44,6 +43,29 @@ const editUser = async (user) => {
   }
 };
 
+// --- 유저 삭제 ---
+const removeUser = async(memberNo)=>{
+
+  const ok = window.confirm("정말 삭제하시겠습니까?");
+  if (!ok) return;
+
+  try {
+    const resp = await axios.delete("http://localhost/admin/removeUser",{
+        params: { memberNo }
+    });
+
+    console.log("삭제 응답:", resp.data);
+    console.log("타입:", Array.isArray(resp.data));
+    if(resp.status === 200){
+      setUsers(resp.data);
+      
+    }
+    
+  }catch(error){
+    console.log("회원 삭제 실패" , error);
+  }
+};
+
 
 
   const [notices, setNotices] = useState([
@@ -59,7 +81,7 @@ const editUser = async (user) => {
   const [userSearch, setUserSearch] = useState("");
   const [userFilter, setUserFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 10;
+  const usersPerPage = 5;
 
  const filteredUsers = users
     .filter(u => {
@@ -326,7 +348,7 @@ const editUser = async (user) => {
                   </td>
                   <td className="actions">
                     <FaEdit onClick={() => handleEdit(user, "user")} />
-                    <FaTrash onClick={() => handleRemove()} />
+                    <FaTrash onClick={() => removeUser(user.memberNo)} />
                   </td>
                 </tr>
               ))}
