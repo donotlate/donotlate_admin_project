@@ -54,7 +54,7 @@ const removeUser = async(memberNo)=>{
         params: { memberNo }
     });
 
-    console.log("삭제 응답:", resp.data);
+    console.log("삭제 후 조회 응답:", resp.data);
     console.log("타입:", Array.isArray(resp.data));
     if(resp.status === 200){
       setUsers(resp.data);
@@ -63,6 +63,22 @@ const removeUser = async(memberNo)=>{
     
   }catch(error){
     console.log("회원 삭제 실패" , error);
+  }
+};
+
+// --- 유저 추가 ---
+const createUser = async(selectedItem)=>{
+
+  try{
+      const resp = await axios.post("http://localhost/admin/createUser",{
+      params: { memberNo }
+    });
+
+
+    console.log("삭제 후 조회 응답:", resp.data);
+    console.log("타입:", Array.isArray(resp.data));
+  }catch(error){
+
   }
 };
 
@@ -92,7 +108,11 @@ const removeUser = async(memberNo)=>{
       if (userFilter === "admin") return u.authority === 3;  // 관리자는 3
       return true;
     })
-    .filter(u => u.memberName.toLowerCase().includes(userSearch.toLowerCase())); // 유저 이름 검색 
+    .filter(u => {
+      const name = u.memberName || "";
+      const keyword = userSearch || "";
+      return name.toLowerCase().includes(keyword.toLowerCase());
+    });
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const displayedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
@@ -122,9 +142,18 @@ const removeUser = async(memberNo)=>{
   const saveChanges = async() => {
     if(modalType === "user") {
       if(selectedItem.memberNo){
+        if(!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim()){ // trim 쓰는 이유 공백까지 잡아줌
+          alert("이름 또는 이메일을 입력해주세요");
+          return;
+        }
         await editUser(selectedItem); // 수정 값
         setUsers(users.map(u => u.memberNo === selectedItem.memberNo ? selectedItem : u)); // 화면 갱신
+
       } else { 
+          if(!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim() || !selectedItem.memberPw?.trim()) { // trim 쓰는 이유 공백까지 잡아줌
+          alert("이름 또는 이메일 또는 비밀번호를 입력해주세요");
+          return;
+        }
         setUsers([...users, { ...selectedItem, memberNo: users.length + 1 }]);
       }
     } else if(modalType === "notice") {
@@ -375,16 +404,25 @@ const removeUser = async(memberNo)=>{
               {modalType==="user" ? (
                 <>
                   <h3>{selectedItem.memberNo ? "유저 수정" : "새 유저 추가"}</h3>
-                  <label>이름:</label>
+                  <label>이름</label>
                   <input value={selectedItem.memberName} onChange={e=>setSelectedItem({...selectedItem, memberName:e.target.value})}/>
-                  <label>이메일:</label>
+                  <label>이메일</label>
                   <input value={selectedItem.memberEmail} onChange={e=>setSelectedItem({...selectedItem, memberEmail:e.target.value})}/>
-                  <label>권한:</label>
+                  {!selectedItem.memberNo ? (
+                        <>
+                          <label>비밀번호</label>
+                          <input type="password"value={selectedItem.memberPw || ""} onChange={e => setSelectedItem({ ...selectedItem, memberPw: e.target.value })}
+                          />
+                        </>
+                      ) 
+                      : null
+                    }
+                  <label>권한</label>
                   <select value={selectedItem.authority} onChange={e=>setSelectedItem({...selectedItem, authority:Number(e.target.value)})}>
                     <option value={1}>일반</option>
                     <option value={3}>관리자</option>
                   </select>
-                  <label>상태:</label>
+                  <label>상태</label>
                   <select value={selectedItem.memberDelFl} onChange={e=>setSelectedItem({...selectedItem, memberDelFl:e.target.value})}>
                     <option value="N">활성</option>
                     <option value="Y">비활성</option>
