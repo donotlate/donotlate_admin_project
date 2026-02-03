@@ -6,6 +6,7 @@ import { IoMegaphoneSharp, IoSearch } from "react-icons/io5";
 import { AuthContext } from './AuthContext';
 import { useContext } from "react";
 import axios from "axios";
+import { useMemo } from "react"; // “계산 결과를 기억해두는 React 훅”
 
 const AdminPage = () => {
   
@@ -14,8 +15,13 @@ const AdminPage = () => {
   // --- 데이터 ---
   const [users, setUsers] = useState([]);
 
+  const nameExp = /^[가-힣a-zA-Z]{2,10}$/;
+
+  const emailExp = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+
   // --- 유저 조회 ---
-  useEffect(()=>{
+  useEffect((users)=>{
     
     const getUsers = async()=>{
       const resp = await axios.get("http://localhost/admin/Users");
@@ -34,6 +40,16 @@ const AdminPage = () => {
 
 // --- 유저 정보 수정 ---
 const editUser = async (user) => {
+
+    if(!nameExp.test(user.memberName)){
+    alert("이름 형식이 올바르지 않습니다.");
+    return;
+  }
+
+  if(!emailExp.test(user.memberEmail)){
+    alert("이메일 형식이 올바르지 않습니다.");
+    return;
+  }
   try {
     const resp = await axios.put("http://localhost/admin/editUser",user
     );
@@ -67,20 +83,59 @@ const removeUser = async(memberNo)=>{
 };
 
 // --- 유저 추가 ---
-const createUser = async(selectedItem)=>{
+const createUser = async(user)=>{
+
+
+  const regExp = /^[A-Za-z0-9!@#$%^&*]{8,15}$/;
+
+
+  if(!nameExp.test(user.memberName)){
+    alert("이름 형식이 올바르지 않습니다.");
+    return;
+  }
+
+  if(!emailExp.test(user.memberEmail)){
+    alert("이메일 형식이 올바르지 않습니다.");
+    return;
+  }
+
+  if(!regExp.test(user.memberPw)){
+    alert("비밀번호 형식이 올바르지 않습니다.");
+    return;
+  }
+
+  
 
   try{
-      const resp = await axios.post("http://localhost/admin/createUser",{
-      params: { memberNo }
-    });
+      const resp = await axios.post("http://localhost/admin/createUser",user);
 
+    console.log("회원 추가 응답:", resp.data);
+    if(resp.status === 200){
+      setUsers(resp.data);
+    }
 
-    console.log("삭제 후 조회 응답:", resp.data);
-    console.log("타입:", Array.isArray(resp.data));
   }catch(error){
-
+    console.log("회원 추가 실패" , error);
   }
 };
+
+
+  // --- 유저 수 조회 ---
+
+const userStats = useMemo(() => {
+  const now = new Date();
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+  return {
+    all: users.length,
+    active: users.filter(u => u.memberDelFl === 'N').length,
+    inactive: users.filter(u => u.memberDelFl === 'Y').length,
+    recent: users.filter(
+      u => now - new Date(u.enrollDate) <= THIRTY_DAYS
+    ).length
+  };
+}, [users]); // 바뀔 때만 재계산
+
 
 
 
@@ -117,6 +172,7 @@ const createUser = async(selectedItem)=>{
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const displayedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
+
   // --- 모달 열기 ---
   const handleEdit = (item, type) => {
     setSelectedItem(item);
@@ -132,7 +188,13 @@ const createUser = async(selectedItem)=>{
   };
 
   const handleAddUser = () => {
-    setSelectedItem([]);
+    setSelectedItem({  
+    memberName: "",
+    memberEmail: "",
+    memberPw: "",
+    authority: 1,       
+    memberDelFl: "N"
+    }); // 초기값 넣은 이유 : select가 보이기만 하고 값이 없음 , 즉 초기값을 넣어 값을 보내줌
     setModalType("user");
     setModalOpen(true);
   };
@@ -148,12 +210,13 @@ const createUser = async(selectedItem)=>{
         }
         await editUser(selectedItem); // 수정 값
         setUsers(users.map(u => u.memberNo === selectedItem.memberNo ? selectedItem : u)); // 화면 갱신
-
+        
       } else { 
-          if(!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim() || !selectedItem.memberPw?.trim()) { // trim 쓰는 이유 공백까지 잡아줌
+        if(!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim() || !selectedItem.memberPw?.trim()) { // trim 쓰는 이유 공백까지 잡아줌
           alert("이름 또는 이메일 또는 비밀번호를 입력해주세요");
           return;
         }
+        await createUser(selectedItem); // 추가 값
         setUsers([...users, { ...selectedItem, memberNo: users.length + 1 }]);
       }
     } else if(modalType === "notice") {
@@ -281,7 +344,7 @@ const createUser = async(selectedItem)=>{
             <div className="stat-card">
               <div className="stat-info">
                 <span>전체 유저</span>
-                <h2>1,234</h2>
+                <h2>{userStats.all}</h2>
               </div>
               <div className="stat-icon icon-blue">
                 <FaUsers />
@@ -291,7 +354,7 @@ const createUser = async(selectedItem)=>{
             <div className="stat-card">
               <div className="stat-info">
                 <span>활성 유저</span>
-                <h2>1,089</h2>
+                <h2>{userStats.active}</h2>
               </div>
               <div className="stat-icon icon-green">
                 <FaUserCheck />
@@ -301,7 +364,7 @@ const createUser = async(selectedItem)=>{
             <div className="stat-card">
               <div className="stat-info">
                 <span>비활성 유저</span>
-                <h2>145</h2>
+                <h2>{userStats.inactive}</h2>
               </div>
               <div className="stat-icon icon-red">
                 <FaUserXmark />
@@ -311,7 +374,7 @@ const createUser = async(selectedItem)=>{
             <div className="stat-card">
               <div className="stat-info">
                 <span>최근 가입</span>
-                <h2>156</h2>
+                <h2>{userStats.recent}</h2>
                 <small>최근 30일</small>
               </div>
               <div className="stat-icon icon-purple">
