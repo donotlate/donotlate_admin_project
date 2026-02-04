@@ -85,27 +85,6 @@ const removeUser = async(memberNo)=>{
 // --- 유저 추가 ---
 const createUser = async(user)=>{
 
-
-  const regExp = /^[A-Za-z0-9!@#$%^&*]{8,15}$/;
-
-
-  if(!nameExp.test(user.memberName)){
-    alert("이름 형식이 올바르지 않습니다.");
-    return;
-  }
-
-  if(!emailExp.test(user.memberEmail)){
-    alert("이메일 형식이 올바르지 않습니다.");
-    return;
-  }
-
-  if(!regExp.test(user.memberPw)){
-    alert("비밀번호 형식이 올바르지 않습니다.");
-    return;
-  }
-
-  
-
   try{
       const resp = await axios.post("http://localhost/admin/createUser",user);
 
@@ -201,33 +180,55 @@ const userStats = useMemo(() => {
 
 
   // --- 모달 저장 ---
-  const saveChanges = async() => {
-    if(modalType === "user") {
-      if(selectedItem.memberNo){
-        if(!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim()){ // trim 쓰는 이유 공백까지 잡아줌
-          alert("이름 또는 이메일을 입력해주세요");
-          return;
-        }
-        await editUser(selectedItem); // 수정 값
-        setUsers(users.map(u => u.memberNo === selectedItem.memberNo ? selectedItem : u)); // 화면 갱신
-        
-      } else { 
-        if(!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim() || !selectedItem.memberPw?.trim()) { // trim 쓰는 이유 공백까지 잡아줌
-          alert("이름 또는 이메일 또는 비밀번호를 입력해주세요");
-          return;
-        }
-        await createUser(selectedItem); // 추가 값
-        setUsers([...users, { ...selectedItem, memberNo: users.length + 1 }]);
-      }
-    } else if(modalType === "notice") {
-      if(selectedItem.memberNo){ 
-        setNotices(notices.map(n => n.id === selectedItem.memberNo ? selectedItem : n));
-      } else { 
-        setNotices([...notices, { ...selectedItem, id: notices.length + 1 }]);
-      }
+const saveChanges = async () => {
+  if (modalType === "user") {
+
+    const isCreate = !selectedItem.memberNo; // 수정 or 새 유저
+    const regExp = /^[A-Za-z0-9!@#$%^&*]{8,15}$/;
+
+
+    if (!selectedItem.memberName?.trim() || !selectedItem.memberEmail?.trim()) {
+      alert("이름 또는 이메일을 입력해주세요");
+      return;
     }
+
+    if (isCreate && !selectedItem.memberPw?.trim()) {
+      alert("비밀번호를 입력해주세요");
+      return;
+    }
+
+
+    if (!nameExp.test(selectedItem.memberName)) {
+      alert("이름 형식이 올바르지 않습니다.");
+      return;
+    }
+
+    if (!emailExp.test(selectedItem.memberEmail)) {
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
+    }
+
+    if (isCreate && !regExp.test(selectedItem.memberPw)) {
+      alert("비밀번호 형식이 올바르지 않습니다.");
+      return;
+    }
+
+    if (isCreate) {
+      await createUser(selectedItem);
+      setUsers([...users, { ...selectedItem, memberNo: users.length + 1 }]);
+    } else {
+      await editUser(selectedItem);
+      setUsers(
+        users.map(u =>
+          u.memberNo === selectedItem.memberNo ? selectedItem : u
+        )
+      );
+    }
+
     setModalOpen(false);
-  };
+  }
+};
+
 
   // --- 이미지 업로드 ---
   const handleImageChange = e => {
