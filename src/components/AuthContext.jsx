@@ -1,7 +1,7 @@
-import React, { createContext, useState } from 'react';
+
 import axios from "axios";
 import { useNavigate } from 'react-router-dom';
-import { axiosApi } from '../api/axiosAPI';
+import React, { createContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
 
@@ -21,6 +21,11 @@ export const AuthProvider= ({ children })=>{
         setPassword(e.target.value);
     }
 
+    // sts + react 현상 중 새로고침 시  로그아웃 됨 그걸 막기 위해 랜더링하여 로그인 상태 만듦
+    useEffect(() => {
+    const saved = localStorage.getItem("loginMember");
+    if(saved) setLoginMember(JSON.parse(saved));
+    }, []);
 
     // 로그인 
     const handleLogin = async (e) => {
@@ -30,6 +35,8 @@ export const AuthProvider= ({ children })=>{
             memberEmail: email,
             memberPw: password
         });
+        localStorage.setItem("loginMember", JSON.stringify(resp.data));
+        setLoginMember(resp.data);
 
         console.log("서버 응답:", resp.data);
 

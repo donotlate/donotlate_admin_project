@@ -12,8 +12,14 @@ const AdminPage = () => {
   
   const globalState = useContext(AuthContext);
 
-  // --- 데이터 ---
+
+  // --- 유저 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   const [users, setUsers] = useState([]);
+
+  const [userSearch, setUserSearch] = useState("");
+  const [userFilter, setUserFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 5;
 
   const nameExp = /^[가-힣a-zA-Z]{2,10}$/;
 
@@ -21,11 +27,11 @@ const AdminPage = () => {
 
 
   // --- 유저 조회 ---
-  useEffect((users)=>{
+  useEffect(()=>{
     
     const getUsers = async()=>{
-      const resp = await axios.get("http://localhost/admin/Users");
       try{
+        const resp = await axios.get("http://localhost/admin/Users");
   
           if(resp.status === 200){
             setUsers(resp.data);
@@ -117,22 +123,89 @@ const userStats = useMemo(() => {
 
 
 
+// 게시판 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  const [notices, setNotices] = useState([]);
+  const [noticePage, setNoticePage] = useState(1);
+  const noticesPerPage = 5;
 
-  const [notices, setNotices] = useState([
-    { id: 1, title: "서비스 점검 안내", content: "서버 점검으로 인해 1시간 서비스 이용이 제한됩니다.", image: null, author: "관리자", date: "2024.01.15", status: "published" },
-  ]);
+
+// --- 게시판 조회 ---
+useEffect(() => {
+
+  const getNotices = async () => {
+    try {
+      const resp = await axios.get("http://localhost/admin/Notices");
+
+      if (resp.status === 200) {
+        setNotices(resp.data);
+      }
+    } catch (error) {
+      console.log("게시판 조회 실패", error);
+    }
+  };
+
+  getNotices();
+}, []);
+
+// --- 게시판 생성 ---
+const  createBoard = async(notice) => {
+  try{
+  const resp = await axios.post("http://localhost/admin/createBoard",notice);
+   if (resp.status === 200) {
+      console.log("게시판 추가 응답:", resp.data);
+      setNotices(resp.data);
+      }
+  }catch(error){
+    console.log("게시글 추가 싶패",error);
+  }
+}
+
+// --- 게시판 삭제 ---
+
+const removeBoard = async(boardNo)=>{
+
+  const ok = window.confirm("정말 삭제하시겠습니까?");
+  if (!ok) return;
+
+  try{
+    const resp = await axios.delete("http://localhost/admin/removeBoard",{   params: { boardNo } });
+
+    if (resp.status === 200) {
+      setNotices(resp.data);
+    }
+  }catch(error){
+    console.log("게시판 삭제 실패",error);
+  }
+}
+
+// --- 게시판 수정  ---
+const editBoard = async(notice)=>{
+  try{
+
+    const resp = await axios.put("http://localhost/admin/editBoard",notice);
+      if (resp.status === 200) {
+      setNotices(resp.data);
+    }
+  }catch(error){
+    console.log("게시판 수정 실패" , error);
+  }
+} 
+
+
+  // --- 프로필 ---
+  const hasProfileImg =
+    globalState.loginMember?.profileImg &&
+    globalState.loginMember.profileImg !== "null";
+
 
   // --- 모달 상태 ---
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(""); // "user" or "notice"
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // --- 검색/필터/페이지 ---
-  const [userSearch, setUserSearch] = useState("");
-  const [userFilter, setUserFilter] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
+  
 
+ // --- 회원 필터 ---
  const filteredUsers = users
     .filter(u => {
       if (userFilter === "all") return true;
@@ -148,9 +221,16 @@ const userStats = useMemo(() => {
       return name.toLowerCase().includes(keyword.toLowerCase());
     });
 
+  // ---  회원 페이지네이션 계산 --- 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const displayedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
+
+
+
+  // --- 공지 페이지네이션 계산 ---
+  const totalNoticePages = Math.ceil(notices.length / noticesPerPage);
+  const displayedNotices = notices.slice((noticePage - 1) * noticesPerPage,noticePage * noticesPerPage);
 
   // --- 모달 열기 ---
   const handleEdit = (item, type) => {
@@ -161,7 +241,13 @@ const userStats = useMemo(() => {
 
   // --- 새 공지/유저 추가 ---
   const handleAddNotice = () => {
-    setSelectedItem([]);
+    setSelectedItem({
+      boardTitle: "",
+      boardContent: "",
+      boardDelFl: "Y",
+      boardViewCount : 0
+      
+    });
     setModalType("notice");
     setModalOpen(true);
   };
@@ -226,6 +312,23 @@ const saveChanges = async () => {
     }
 
     setModalOpen(false);
+  }else{
+    const isCreate = !selectedItem.boardNo; 
+
+    if(!selectedItem.boardTitle?.trim() || !selectedItem.boardContent?.trim()){
+      alert("제목 또는 내용을 입력해 주세요");
+      return;
+    }
+      if (isCreate) {
+      await createBoard(selectedItem);
+      setNotices([...notices, { ...selectedItem, boardNo: notices.length + 1 }]);
+    } else {
+      await editBoard(selectedItem);
+      setNotices(notices.map(u =>u.boardNo === selectedItem.boardNo ? selectedItem : u
+        )
+      );
+    }
+    setModalOpen(false);
   }
 };
 
@@ -240,7 +343,8 @@ const saveChanges = async () => {
     }
   };
 
-  
+
+
 
 
   const moveTo = (id) => {
@@ -275,7 +379,24 @@ const saveChanges = async () => {
     <div className="gnb-right">
       <div className="admin-profile">
         <span>{globalState.loginMember?.memberName} 관리자님</span>
-        <div className="avatar"></div>
+        {/* 프로필 */}
+        <div className="avatar">
+          {hasProfileImg ? (
+            <img
+              src={globalState.loginMember.profileImg}
+              alt="프로필 이미지"
+              className="avatar-img"
+              onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+            />
+          ) : (
+            <span className="avatar-initial">
+              {globalState.loginMember?.memberName?.charAt(0) || "?"}
+            </span>
+          )}
+        </div>
+        
       </div>
 
       <button className="btn-white" onClick={globalState.handleLogout}>
@@ -284,6 +405,7 @@ const saveChanges = async () => {
     </div>
   </div>
 </header>
+
 
 
 
@@ -304,33 +426,50 @@ const saveChanges = async () => {
                 <th>제목</th>
                 <th>작성자</th>
                 <th>작성일</th>
+                <th>조회수</th>
                 <th>상태</th>
                 <th>관리</th>
               </tr>
             </thead>
             <tbody>
-              {notices.map(notice => (
-                <tr key={notice.id}>
-                  <td>{notice.title}</td>
-                  <td>{notice.author}</td>
-                  <td>{notice.date}</td>
+              {displayedNotices.map(notice => (
+                <tr key={notice.boardNo}>
+                  <td>{notice.boardTitle}</td>
+                  <td>{notice.memberName} 님</td>
+                  <td>{notice.boardWriteDate}</td>
+                  <td>{notice.boardViewCount}</td>
                   <td>
                     <span 
-                      className={notice.status === "published" ? "badge-success" : "badge-draft"}
+                      className={notice.boardDelFl === "N" ? "badge-success" : "badge-draft"}
                       style={{ cursor: "pointer" }}
                     >
-                      {notice.status === "published" ? "게시중" : "임시저장"}
+                      {notice.boardDelFl === "N" ? "게시중" : "임시저장"}
                     </span>
                   </td>
                   <td className="actions">
                     <FaEdit onClick={() => handleEdit(notice, "notice")} />
-                    <FaTrash onClick={() => alert("공지 삭제 기능 구현 가능")} />
+                    <FaTrash onClick={() => removeBoard(notice.boardNo)} />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {/* 공지사항 페이지네이션 */}
+          <div className="pagination">
+            <span>총 {notices.length}건 표시</span>
+            <div className="page-btns">
+              <button className="p-nav" disabled={noticePage===1} onClick={()=>setNoticePage(noticePage-1)}><FaChevronLeft /></button>
+              {[...Array(totalNoticePages)].map((_, i) => (
+                <button key={i} className={noticePage===i+1?"p-num active":"p-num"} onClick={()=>setNoticePage(i+1)}>{i+1}</button>
+              ))}
+              <button className="p-nav" disabled={noticePage===totalNoticePages} onClick={()=>setNoticePage(noticePage+1)}><FaChevronRight /></button>
+            </div>
+          </div>
         </section>
+
+          
+              
+
 
         {/* 유저 요약 통계 섹션 */}
         <section className="card-section">
@@ -419,6 +558,7 @@ const saveChanges = async () => {
                 <th>사용자 정보</th>
                 <th>이메일</th>
                 <th>권한</th>
+                <th>소셜</th>
                 <th>가입일</th>
                 <th>상태</th>
                 <th>관리</th>
@@ -430,6 +570,7 @@ const saveChanges = async () => {
                   <td>{user.memberName}</td>
                   <td>{user.memberEmail}</td>
                   <td>{user.authority === 3? "관리자": "일반"}</td>
+                  <td>{user.socialType == null ? "LOCAL" : user.socialType}</td>
                   <td>{user.enrollDate}</td>
                   <td>
                     <span 
@@ -448,9 +589,11 @@ const saveChanges = async () => {
             </tbody>
           </table>
 
+
+
           {/* 페이지네이션 */}
           <div className="pagination">
-            <span>{(currentPage-1)*usersPerPage+1}-{Math.min(currentPage*usersPerPage, filteredUsers.length)} / {filteredUsers.length}명 표시</span>
+            <span>총 {filteredUsers.length}명 표시</span>
             <div className="page-btns">
               <button className="p-nav" disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}><FaChevronLeft /></button>
               {[...Array(totalPages)].map((_, i) => (
@@ -494,14 +637,19 @@ const saveChanges = async () => {
                 </>
               ) : (
                 <>
-                  <h3>{selectedItem.id ? "공지사항 수정" : "새 공지사항 추가"}</h3>
-                  <label>제목:</label>
-                  <input value={selectedItem.title} onChange={e=>setSelectedItem({...selectedItem, title:e.target.value})}/>
-                  <label>이미지:</label>
+                  <h3>{selectedItem.boardNo ? "공지사항 수정" : "새 공지사항 추가"}</h3>
+                  <label>제목</label>
+                  <input value={selectedItem.boardTitle} onChange={e=>setSelectedItem({...selectedItem, boardTitle:e.target.value})}/>
+                  <label>상태</label>
+                   <select value={selectedItem.boardDelFl} onChange={e=>setSelectedItem({...selectedItem, boardDelFl:e.target.value})}>
+                    <option value="N">게시중</option>
+                    <option value="Y">임시 저장</option>
+                  </select>
+                  <label>이미지</label>
                   <input type="file" accept="image/*" onChange={handleImageChange}/>
                   {selectedItem.image && <img src={selectedItem.image} alt="미리보기" style={{ width: "100%", marginTop: "10px", borderRadius: "8px" }} />}
-                  <label>내용:</label>
-                  <textarea value={selectedItem.content} onChange={e=>setSelectedItem({...selectedItem, content:e.target.value})}/>
+                  <label>내용</label>
+                  <textarea value={selectedItem.boardContent} onChange={e=>setSelectedItem({...selectedItem, boardContent:e.target.value})}/>
                 </>
               )}
               <div className="modal-buttons">
