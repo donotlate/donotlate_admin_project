@@ -95,11 +95,27 @@ body { background-color: #f8fafc; font-family: sans-serif; }
   color: #475569;
 }
 
-.avatar {
-  width: 30px;
-  height: 30px;
+.admin-name {
+  font-size: 15px;
+  font-weight: 800;   
+}
+.profile-avatar {
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
-  background: #cbd5e1;
+  overflow: hidden;               /* ⭐ 필수 */
+  background: linear-gradient(to bottom right, #3b82f6, #9333ea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;              /* ⭐ 핵심 */
+  display: block;
 }
 
 .btn-white {

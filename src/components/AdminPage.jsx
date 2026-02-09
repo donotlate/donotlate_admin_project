@@ -193,9 +193,15 @@ const editBoard = async(notice)=>{
 
 
   // --- 프로필 ---
+  const [imgError, setImgError] = useState(false);
+
+
   const hasProfileImg =
-    globalState.loginMember?.profileImg &&
-    globalState.loginMember.profileImg !== "null";
+  globalState.loginMember?.profileImg &&
+  globalState.loginMember.profileImg !== "null" &&
+  !imgError;
+
+  
 
 
   // --- 모달 상태 ---
@@ -258,7 +264,8 @@ const editBoard = async(notice)=>{
     memberEmail: "",
     memberPw: "",
     authority: 1,       
-    memberDelFl: "N"
+    memberDelFl: "N",
+    profileImg:""
     }); // 초기값 넣은 이유 : select가 보이기만 하고 값이 없음 , 즉 초기값을 넣어 값을 보내줌
     setModalType("user");
     setModalOpen(true);
@@ -378,24 +385,22 @@ const saveChanges = async () => {
 
     <div className="gnb-right">
       <div className="admin-profile">
-        <span>{globalState.loginMember?.memberName} 관리자님</span>
+        <span className="admin-name">{globalState.loginMember?.memberName} 관리자님</span>
         {/* 프로필 */}
-        <div className="avatar">
-          {hasProfileImg ? (
-            <img
-              src={globalState.loginMember.profileImg}
-              alt="프로필 이미지"
-              className="avatar-img"
-              onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-            />
-          ) : (
-            <span className="avatar-initial">
-              {globalState.loginMember?.memberName?.charAt(0) || "?"}
-            </span>
-          )}
-        </div>
+      <div className="profile-avatar">
+        {hasProfileImg ? (
+          <img
+            src={`http://localhost${globalState.loginMember.profileImg}`}
+            alt="프로필 이미지"
+            className="avatar-img"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="avatar-initial">
+            {globalState.loginMember?.memberName?.charAt(0) || "?"}
+          </span>
+        )}
+      </div>
         
       </div>
 
