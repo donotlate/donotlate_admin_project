@@ -31,7 +31,7 @@ const AdminPage = () => {
     
     const getUsers = async()=>{
       try{
-        const resp = await axios.get("http://localhost/admin/Users");
+        const resp = await axios.get("http://donotlateCP/admin/Users");
   
           if(resp.status === 200){
             setUsers(resp.data);
@@ -57,7 +57,7 @@ const editUser = async (user) => {
     return;
   }
   try {
-    const resp = await axios.put("http://localhost/admin/editUser",user
+    const resp = await axios.put("http://donotlateCP/admin/editUser",user
     );
     return resp;
   } catch (error) {
@@ -72,7 +72,7 @@ const removeUser = async(memberNo)=>{
   if (!ok) return;
 
   try {
-    const resp = await axios.delete("http://localhost/admin/removeUser",{
+    const resp = await axios.delete("http://donotlateCP/admin/removeUser",{
         params: { memberNo }
     });
 
@@ -92,7 +92,7 @@ const removeUser = async(memberNo)=>{
 const createUser = async(user)=>{
 
   try{
-      const resp = await axios.post("http://localhost/admin/createUser",user);
+      const resp = await axios.post("http://donotlateCP/admin/createUser",user);
 
     console.log("회원 추가 응답:", resp.data);
     if(resp.status === 200){
@@ -134,7 +134,7 @@ useEffect(() => {
 
   const getNotices = async () => {
     try {
-      const resp = await axios.get("http://localhost/admin/Notices");
+      const resp = await axios.get("http://donotlateCP/admin/Notices");
 
       if (resp.status === 200) {
         setNotices(resp.data);
@@ -150,7 +150,7 @@ useEffect(() => {
 // --- 게시판 생성 ---
 const  createBoard = async(notice) => {
   try{
-  const resp = await axios.post("http://localhost/admin/createBoard",notice);
+  const resp = await axios.post("http://donotlateCP/admin/createBoard",notice);
    if (resp.status === 200) {
       console.log("게시판 추가 응답:", resp.data);
       setNotices(resp.data);
@@ -168,7 +168,7 @@ const removeBoard = async(boardNo)=>{
   if (!ok) return;
 
   try{
-    const resp = await axios.delete("http://localhost/admin/removeBoard",{   params: { boardNo } });
+    const resp = await axios.delete("http://donotlateCP/admin/removeBoard",{   params: { boardNo } });
 
     if (resp.status === 200) {
       setNotices(resp.data);
@@ -182,7 +182,7 @@ const removeBoard = async(boardNo)=>{
 const editBoard = async(notice)=>{
   try{
 
-    const resp = await axios.put("http://localhost/admin/editBoard",notice);
+    const resp = await axios.put("http://donotlateCP/admin/editBoard",notice);
       if (resp.status === 200) {
       setNotices(resp.data);
     }
@@ -390,7 +390,7 @@ const saveChanges = async () => {
       <div className="profile-avatar">
         {hasProfileImg ? (
           <img
-            src={`http://localhost${globalState.loginMember.profileImg}`}
+            src={`http://donotlateCP${globalState.loginMember.profileImg}`}
             alt="프로필 이미지"
             className="avatar-img"
             onError={() => setImgError(true)}

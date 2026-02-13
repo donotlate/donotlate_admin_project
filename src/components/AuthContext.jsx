@@ -31,7 +31,7 @@ export const AuthProvider= ({ children })=>{
     const handleLogin = async (e) => {
 
     try {
-        const resp = await axios.post("http://localhost/admin/login", {
+        const resp = await axios.post("http://donotlateCP/admin/login", {
             memberEmail: email,
             memberPw: password
         });
@@ -60,7 +60,7 @@ export const AuthProvider= ({ children })=>{
             const ok = window.confirm("로그아웃 하시겠습니까?");
             if (!ok) return;
 
-            const resp = await axios.get("http://localhost/admin/logout")
+            const resp = await axios.get("http://donotlateCP/admin/logout")
 
             if(resp.status === 200){
                 localStorage.removeItem("loginMember");// 브라우저 저장소 비우기
