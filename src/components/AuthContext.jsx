@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import React, { createContext, useState, useEffect } from 'react';
 
 export const AuthContext = createContext();
-
+axios.defaults.withCredentials = true;
 
 export const AuthProvider= ({ children })=>{
 
@@ -57,9 +57,13 @@ export const AuthProvider= ({ children })=>{
     // 로그아웃
     const handleLogout = async () => {
         try{
+            const ok = window.confirm("로그아웃 하시겠습니까?");
+            if (!ok) return;
+
             const resp = await axios.get("http://localhost/admin/logout")
 
             if(resp.status === 200){
+                localStorage.removeItem("loginMember");// 브라우저 저장소 비우기
                 setLoginMember(null);
                 navigate("/");
             }
@@ -75,6 +79,7 @@ export const AuthProvider= ({ children })=>{
     loginMember,
     changeEmail,
     changePassword,
+    setLoginMember,
     handleLogin,
     handleLogout
   };
