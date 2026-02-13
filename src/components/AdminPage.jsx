@@ -40,7 +40,6 @@ const AdminPage = () => {
         console.log("회원조회 실패" , error);
       }
     }
-
     getUsers();
   },[]); 
 
