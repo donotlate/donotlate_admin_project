@@ -10,24 +10,14 @@ import { useLocation } from "react-router-dom";
 
 // --- 1. 관리자 접근 제한 컴포넌트 (문지기) ---
 const AdminGuard = ({ children }) => {
-  const { loginMember, isLoggingOut } = useContext(AuthContext);
+  const { isLoggingOut } = useContext(AuthContext);
   const location = useLocation();
 
-  const saved = localStorage.getItem("loginMember");
-  let savedObj = null;
+  const token = localStorage.getItem("accessToken");
 
-  if (saved && saved !== "null") {
-    try {
-      savedObj = JSON.parse(saved);
-    } catch {
-      savedObj = null;
-    }
-  }
-
-  const isAuthenticated = !!(loginMember?.memberEmail || savedObj?.memberEmail);
+  const isAuthenticated = !!token;
 
   if (!isAuthenticated) {
-    // 로그아웃 중이면 auth alert 안 뜨도록 reason 다르게 보내기
     const reason = isLoggingOut ? "logout" : "auth";
 
     return (

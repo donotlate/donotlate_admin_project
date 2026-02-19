@@ -1,9 +1,8 @@
 import axios from "axios";
-import React, { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext();
-axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({ children }) => {
   const [email, setEmail] = useState("");
@@ -13,85 +12,59 @@ export const AuthProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
+  const API = import.meta.env.VITE_API_URL; // 예: https://donotlate.kro.kr
+
   const changeEmail = (e) => setEmail(e.target.value);
   const changePassword = (e) => setPassword(e.target.value);
 
-  // 새로고침해도 로그인 유지(localStorage 복원)
-  useEffect(() => {
-    const saved = localStorage.getItem("loginMember");
-    if (!saved || saved === "null") return;
-
-    try {
-      const parsed = JSON.parse(saved);
-      setLoginMember(parsed);
-    } catch {
-      localStorage.removeItem("loginMember");
-      setLoginMember(null);
-    }
-  }, []);
-
   // 로그인
-  const handleLogin = async (e) => {
+  const handleLogin = async () => {
     try {
-      e?.preventDefault?.();
-
-      const resp = await axios.post("http://localhost/admin/login", {
+      const resp = await axios.post(`${API}/admin/login`, {
         memberEmail: email,
         memberPw: password,
       });
 
-      // 로그인 성공 판단
-      if (resp.data?.memberEmail) {
-        localStorage.setItem("loginMember", JSON.stringify(resp.data));
-        setLoginMember(resp.data);
-        navigate("/admin", { replace: true });
-      } else {
-        alert("아이디 또는 비밀번호를 확인해주세요.");
-      }
-    } catch (error) {
-      console.error("서버 통신 에러:", error);
-      alert("서버 오류가 발생했습니다.");
+      localStorage.setItem("accessToken", resp.data.token);
+
+      // (선택) 화면 표시용 정보 저장
+      const memberInfo = {
+        memberEmail: resp.data.memberEmail,
+        memberName: resp.data.memberName,
+      };
+      localStorage.setItem("loginMember", JSON.stringify(memberInfo));
+      setLoginMember(memberInfo);
+
+      navigate("/admin");
+    } catch (err) {
+      alert("로그인 실패");
+      console.log(err);
     }
   };
 
   // 로그아웃
-  const handleLogout = async () => {
-    try {
-      const ok = window.confirm("로그아웃 하시겠습니까?");
-      if (!ok) return;
-
-      setIsLoggingOut(true);
-
-      const resp = await axios.get("http://localhost/admin/logout");
-
-      if (resp.status === 200) {
-        localStorage.removeItem("loginMember");
-        setLoginMember(null);
-
-        // 로그아웃으로 이동: 뒤로가기 방지
-        navigate("/login", { replace: true, state: { reason: "logout" } });
-      }
-    } catch (error) {
-      console.log("로그아웃 중 에러 발생:", error);
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const globalState = {
-    email,
-    password,
-    loginMember,
-    isLoggingOut,
-    changeEmail,
-    changePassword,
-    setLoginMember,
-    handleLogin,
-    handleLogout,
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("loginMember");
+    setLoginMember(null);
+    navigate("/login", { replace: true, state: { reason: "logout" } });
+    setIsLoggingOut(false);
   };
 
   return (
-    <AuthContext.Provider value={globalState}>
+    <AuthContext.Provider
+      value={{
+        email,
+        password,
+        loginMember,
+        isLoggingOut,
+        changeEmail,
+        changePassword,
+        handleLogin,
+        handleLogout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
