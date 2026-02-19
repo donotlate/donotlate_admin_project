@@ -6,7 +6,7 @@ import { IoMegaphoneSharp, IoSearch } from "react-icons/io5";
 import { AuthContext } from './AuthContext';
 import { useContext } from "react";
 import { useMemo } from "react"; // “계산 결과를 기억해두는 React 훅”
-import { axiosApi } from "../api/axiosApi";
+import { axiosAPI } from "../api/axiosAPI";
 
 const AdminPage = () => {
   
@@ -31,7 +31,7 @@ const AdminPage = () => {
     
     const getUsers = async()=>{
       try{
-        const resp = await axiosApi.get("/admin/Users");
+        const resp = await axiosAPI.get("/admin/Users");
   
           if(resp.status === 200){
             setUsers(resp.data);
@@ -56,7 +56,7 @@ const editUser = async (user) => {
     return;
   }
   try {
-    const resp = await axiosApi.put("/admin/editUser",user
+    const resp = await axiosAPI.put("/admin/editUser",user
     );
     return resp;
   } catch (error) {
@@ -71,7 +71,7 @@ const removeUser = async(memberNo)=>{
   if (!ok) return;
 
   try {
-    const resp = await axiosApi.delete("/admin/removeUser",{
+    const resp = await axiosAPI.delete("/admin/removeUser",{
         params: { memberNo }
     });
 
@@ -91,7 +91,7 @@ const removeUser = async(memberNo)=>{
 const createUser = async(user)=>{
 
   try{
-      const resp = await axiosApi.post("/admin/createUser",user);
+      const resp = await axiosAPI.post("/admin/createUser",user);
 
     console.log("회원 추가 응답:", resp.data);
     if(resp.status === 200){
@@ -133,7 +133,7 @@ useEffect(() => {
 
   const getNotices = async () => {
     try {
-      const resp = await axiosApi.get("/admin/Notices");
+      const resp = await axiosAPI.get("/admin/Notices");
 
       if (resp.status === 200) {
         setNotices(resp.data);
@@ -149,7 +149,7 @@ useEffect(() => {
 // --- 게시판 생성 ---
 const  createBoard = async(notice) => {
   try{
-  const resp = await axiosApi.post("/admin/createBoard",notice);
+  const resp = await axiosAPI.post("/admin/createBoard",notice);
    if (resp.status === 200) {
       console.log("게시판 추가 응답:", resp.data);
       setNotices(resp.data);
@@ -167,7 +167,7 @@ const removeBoard = async(boardNo)=>{
   if (!ok) return;
 
   try{
-    const resp = await axiosApi.delete("/admin/removeBoard",{   params: { boardNo } });
+    const resp = await axiosAPI.delete("/admin/removeBoard",{   params: { boardNo } });
 
     if (resp.status === 200) {
       setNotices(resp.data);
@@ -181,7 +181,7 @@ const removeBoard = async(boardNo)=>{
 const editBoard = async(notice)=>{
   try{
 
-    const resp = await axiosApi.put("/admin/editBoard",notice);
+    const resp = await axiosAPI.put("/admin/editBoard",notice);
       if (resp.status === 200) {
       setNotices(resp.data);
     }
