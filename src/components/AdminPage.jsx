@@ -11,6 +11,7 @@ import { axiosAPI } from "../api/axiosAPI";
 const AdminPage = () => {
 
 
+  const globalState = useContext(AuthContext);
 
   // --- 유저 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
   const [users, setUsers] = useState([]);
