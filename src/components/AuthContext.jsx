@@ -1,6 +1,7 @@
-import axiosAPI from "../api/axiosAPI";
-import { createContext, useState } from "react";
+// AuthContext.jsx 일부 (핵심만 예시)
+import React, { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { axiosAPI } from "../api/axiosAPI";
 
 export const AuthContext = createContext();
 
@@ -12,11 +13,9 @@ export const AuthProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
-
   const changeEmail = (e) => setEmail(e.target.value);
   const changePassword = (e) => setPassword(e.target.value);
 
-  // 로그인
   const handleLogin = async () => {
     try {
       const resp = await axiosAPI.post("/admin/login", {
@@ -24,27 +23,29 @@ export const AuthProvider = ({ children }) => {
         memberPw: password,
       });
 
-      localStorage.setItem("accessToken", resp.data.token);
 
-      const memberInfo = {
-        memberEmail: resp.data.memberEmail,
+      localStorage.setItem("accessToken", resp.data.accessToken);
+
+
+      setLoginMember({
         memberName: resp.data.memberName,
-      };
-      localStorage.setItem("loginMember", JSON.stringify(memberInfo));
-      setLoginMember(memberInfo);
+        memberEmail: resp.data.memberEmail,
+      });
 
-      navigate("/admin");
+      navigate("/admin", { replace: true });
     } catch (err) {
-      alert("로그인 실패");
-      console.log(err);
+      if (err.response?.status === 401) {
+        alert("아이디 또는 비밀번호가 올바르지 않습니다.");
+        return;
+      }
+      console.log("로그인 실패:", err);
+      alert("로그인 중 오류가 발생했습니다.");
     }
   };
 
-  // 로그아웃
   const handleLogout = () => {
     setIsLoggingOut(true);
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("loginMember");
     setLoginMember(null);
     navigate("/login", { replace: true, state: { reason: "logout" } });
     setIsLoggingOut(false);
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         loginMember,
+        setLoginMember,
         isLoggingOut,
         changeEmail,
         changePassword,
