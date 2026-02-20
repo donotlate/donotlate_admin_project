@@ -249,7 +249,7 @@ const editBoard = async(notice)=>{
     setSelectedItem({
       boardTitle: "",
       boardContent: "",
-      boardDelFl: "Y",
+      boardDelFl: "",
       boardViewCount : 0
       
     });
