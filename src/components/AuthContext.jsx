@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosAPI from "../api/axiosAPI";
 import { createContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
-  const API = import.meta.env.VITE_API_URL; // 예: https://donotlate.kro.kr
 
   const changeEmail = (e) => setEmail(e.target.value);
   const changePassword = (e) => setPassword(e.target.value);
@@ -20,14 +19,13 @@ export const AuthProvider = ({ children }) => {
   // 로그인
   const handleLogin = async () => {
     try {
-      const resp = await axios.post(`${API}/admin/login`, {
+      const resp = await axiosAPI.post("/admin/login", {
         memberEmail: email,
         memberPw: password,
       });
 
       localStorage.setItem("accessToken", resp.data.token);
 
-      // (선택) 화면 표시용 정보 저장
       const memberInfo = {
         memberEmail: resp.data.memberEmail,
         memberName: resp.data.memberName,

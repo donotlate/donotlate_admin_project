@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosAPI = axios.create({
-  baseURL: "https://donotlate.kro.kr",
+  baseURL: "http://localhost",
 });
 
 // 요청 보낼 때마다 자동으로 토큰 붙이기

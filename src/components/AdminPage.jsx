@@ -9,8 +9,7 @@ import { useMemo } from "react"; // “계산 결과를 기억해두는 React �
 import { axiosAPI } from "../api/axiosAPI";
 
 const AdminPage = () => {
-  
-  const globalState = useContext(AuthContext);
+
 
 
   // --- 유저 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -31,7 +30,7 @@ const AdminPage = () => {
     
     const getUsers = async()=>{
       try{
-        const resp = await axiosAPI.get("/admin/Users");
+        const resp = await axiosAPI.get("/admin/users");
   
           if(resp.status === 200){
             setUsers(resp.data);
@@ -133,7 +132,7 @@ useEffect(() => {
 
   const getNotices = async () => {
     try {
-      const resp = await axiosAPI.get("/admin/Notices");
+      const resp = await axiosAPI.get("/admin/notices");
 
       if (resp.status === 200) {
         setNotices(resp.data);
