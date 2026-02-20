@@ -15,9 +15,10 @@ const Login = () => {
     if (reason === "auth") {
       alert("로그인이 필요한 서비스입니다.");
     }
-    
+
     if (reason === "logout") {
-      alert("로그아웃 되었습니다.");
+      const ok = window.confirm("로그아웃하시겠습니까?");
+      if (!ok) return;
    }
 
     if (reason) {
