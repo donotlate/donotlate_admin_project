@@ -17,8 +17,7 @@ const Login = () => {
     }
 
     if (reason === "logout") {
-      const ok = window.confirm("로그아웃하시겠습니까?");
-      if (!ok) return;
+      alert("로그아웃 되었습니다.");
    }
 
     if (reason) {
