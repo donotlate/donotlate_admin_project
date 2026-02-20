@@ -146,18 +146,28 @@ useEffect(() => {
   getNotices();
 }, []);
 
-// --- 게시판 생성 ---
-const  createBoard = async(notice) => {
-  try{
-  const resp = await axiosAPI.post("/admin/createBoard",notice);
-   if (resp.status === 200) {
-      console.log("게시판 추가 응답:", resp.data);
+// --- 게시판 생성 ( formData ) 이미지는 json 형태로 못 보냄---
+const createBoard = async (notice) => {
+  try {
+    const formData = new FormData();
+    formData.append("boardTitle", notice.boardTitle);
+    formData.append("boardContent", notice.boardContent);
+    formData.append("boardDelFl", notice.boardDelFl);
+
+    if (noticeImageFile) formData.append("image", noticeImageFile);
+
+    console.log("title:", formData.get("boardTitle"));
+    console.log("image:", formData.get("image")); // File 객체가 찍혀야 정상
+
+    const resp = await axiosAPI.post("/admin/createBoard", formData); 
+
+    if (resp.status === 200) {
       setNotices(resp.data);
-      }
-  }catch(error){
-    console.log("게시글 추가 싶패",error);
+    }
+  } catch (error) {
+    console.log("게시글 추가 실패", error);
   }
-}
+};
 
 // --- 게시판 삭제 ---
 
@@ -178,17 +188,25 @@ const removeBoard = async(boardNo)=>{
 }
 
 // --- 게시판 수정  ---
-const editBoard = async(notice)=>{
-  try{
+const editBoard = async (notice) => {
+  try {
+    const formData = new FormData();
+    formData.append("boardNo", notice.boardNo);
+    formData.append("boardTitle", notice.boardTitle);
+    formData.append("boardContent", notice.boardContent);
+    formData.append("boardDelFl", notice.boardDelFl);
 
-    const resp = await axiosAPI.put("/admin/editBoard",notice);
-      if (resp.status === 200) {
+    if (noticeImageFile) formData.append("image", noticeImageFile);
+
+    const resp = await axiosAPI.put("/admin/editBoard", formData);
+
+    if (resp.status === 200) {
       setNotices(resp.data);
     }
-  }catch(error){
-    console.log("게시판 수정 실패" , error);
+  } catch (error) {
+    console.log("게시판 수정 실패", error);
   }
-} 
+};
 
 
   // --- 프로필 ---
@@ -207,41 +225,59 @@ const editBoard = async(notice)=>{
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(""); // "user" or "notice"
   const [selectedItem, setSelectedItem] = useState(null);
-
   
-
- // --- 회원 필터 ---
- const filteredUsers = users
-    .filter(u => {
-      if (userFilter === "all") return true;
-      if (userFilter === "active") return u.memberDelFl === 'N';
-      if (userFilter === "inactive") return u.memberDelFl === 'Y';
-      if (userFilter === "normal") return u.authority === 1; // 일반은 1
-      if (userFilter === "admin") return u.authority === 3;  // 관리자는 3
-      return true;
-    })
-    .filter(u => {
-      const name = u.memberName || "";
-      const keyword = userSearch || "";
-      return name.toLowerCase().includes(keyword.toLowerCase());
-    });
-
+  
+  
+  // --- 회원 필터 ---
+  const filteredUsers = users
+  .filter(u => {
+    if (userFilter === "all") return true;
+    if (userFilter === "active") return u.memberDelFl === 'N';
+    if (userFilter === "inactive") return u.memberDelFl === 'Y';
+    if (userFilter === "normal") return u.authority === 1; // 일반은 1
+    if (userFilter === "admin") return u.authority === 3;  // 관리자는 3
+    return true;
+  })
+  .filter(u => {
+    const name = u.memberName || "";
+    const keyword = userSearch || "";
+    return name.toLowerCase().includes(keyword.toLowerCase());
+  });
+  
   // ---  회원 페이지네이션 계산 --- 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const displayedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
-
-
-
-
+  
+  
+  
+  
   // --- 공지 페이지네이션 계산 ---
   const totalNoticePages = Math.ceil(notices.length / noticesPerPage);
   const displayedNotices = notices.slice((noticePage - 1) * noticesPerPage,noticePage * noticesPerPage);
+  
+  // --- 이미지 ---
+  const [noticeImageFile, setNoticeImageFile] = useState(null);      // 실제 업로드 파일
+  const [noticeImagePreview, setNoticeImagePreview] = useState(null); // 미리보기
+
+  const NOTICE_IMG_BASE = "http://localhost/images/board/";
+
+  const previewSrc =
+    noticeImagePreview ??
+    (selectedItem?.thumbnailUrl
+      ? `${NOTICE_IMG_BASE}${selectedItem.thumbnailUrl}`
+      : null);
+
 
   // --- 모달 열기 ---
   const handleEdit = (item, type) => {
     setSelectedItem(item);
     setModalType(type);
     setModalOpen(true);
+
+    if (type === "notice") {
+    setNoticeImageFile(null);
+    setNoticeImagePreview(null); 
+  }
   };
 
   // --- 새 공지/유저 추가 ---
@@ -255,6 +291,9 @@ const editBoard = async(notice)=>{
     });
     setModalType("notice");
     setModalOpen(true);
+
+    setNoticeImageFile(null);
+    setNoticeImagePreview(null);
   };
 
   const handleAddUser = () => {
@@ -340,14 +379,16 @@ const saveChanges = async () => {
 
 
   // --- 이미지 업로드 ---
-  const handleImageChange = e => {
-    const file = e.target.files[0];
-    if(file){
-      const reader = new FileReader();
-      reader.onload = () => setSelectedItem({...selectedItem, image: reader.result}); // onload : 다 읽으면 실행(이미지 미리보기 가능) , FileReader 사용 시 onload 필수
-      reader.readAsDataURL(file); // Base64
-    }
-  };
+const handleImageChange = (e) => {
+  const file = e.target.files?.[0];
+  console.log("file:", file); 
+  if (!file) return;
+
+  setNoticeImageFile(file);
+
+  const blobUrl = URL.createObjectURL(file);
+  setNoticeImagePreview(blobUrl);
+};
 
 
 
@@ -644,14 +685,25 @@ const saveChanges = async () => {
                   <h3>{selectedItem.boardNo ? "공지사항 수정" : "새 공지사항 추가"}</h3>
                   <label>제목</label>
                   <input value={selectedItem.boardTitle} onChange={e=>setSelectedItem({...selectedItem, boardTitle:e.target.value})}/>
-                  <label>상태</label>
+                  {selectedItem.boardNo?(
+                    <>
+                    <label>상태</label>
                    <select value={selectedItem.boardDelFl} onChange={e=>setSelectedItem({...selectedItem, boardDelFl:e.target.value})}>
                     <option value="N">게시중</option>
                     <option value="Y">임시 저장</option>
                   </select>
+                    
+                    </>
+                  ) : null}
                   <label>이미지</label>
                   <input type="file" accept="image/*" onChange={handleImageChange}/>
-                  {selectedItem.image && <img src={selectedItem.image} alt="미리보기" style={{ width: "100%", marginTop: "10px", borderRadius: "8px" }} />}
+                  {previewSrc && (
+                  <img
+                      src={previewSrc}
+                      alt="미리보기"
+                      style={{ width: "100%", marginTop: "10px", borderRadius: "8px" }}
+                    />
+                  )}
                   <label>내용</label>
                   <textarea value={selectedItem.boardContent} onChange={e=>setSelectedItem({...selectedItem, boardContent:e.target.value})}/>
                 </>
