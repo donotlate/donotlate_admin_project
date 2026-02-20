@@ -15,6 +15,10 @@ const Login = () => {
     if (reason === "auth") {
       alert("로그인이 필요한 서비스입니다.");
     }
+    
+    if (reason === "logout") {
+      alert("로그아웃 되었습니다.");
+   }
 
     if (reason) {
       navigate(location.pathname, { replace: true, state: null });
