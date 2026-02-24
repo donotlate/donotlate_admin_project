@@ -199,7 +199,20 @@ body { background-color: #f8fafc; font-family: sans-serif; }
 .dot-inactive { color: #ef4444; font-weight: 700; font-size: 13px; }
 .badge-success { color: #16a34a; font-weight: 700; font-size: 13px; }
 .badge-draft { color: orange; font-weight: 700; font-size: 13px; }
-.actions { display: flex; position: relative; gap: 15px; color: #cbd5e1; justify-content: flex-end; font-size: 18px; cursor: pointer; right:80px ; }
+.actions { display: flex; position: relative; gap: 15px; color: #cbd5e1; justify-content: flex-end; font-size: 18px; cursor: pointer; right:40px ; }
+.category-badge{
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+.badge-general { background:#f3f4f6; color:#6b7280; }
+.badge-update { background:#dbeafe; color:#2563eb; }
+.badge-maintenance { background:#fef3c7; color:#f59e0b; }
+.badge-event { background:#d1fae5; color:#10b981; }
+.badge-urgent { background:#fee2e2; color:#ef4444; }
 
 /* 툴바 & 페이지네이션 */
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
