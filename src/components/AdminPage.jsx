@@ -16,7 +16,7 @@ import { AuthContext } from "./AuthContext";
 import { axiosAPI } from "../api/axiosAPI";
 
 /**
- * ✅ 이미지 경로 처리 (배포/로컬 모두 OK)
+ *  이미지 경로 처리 (배포/로컬 모두 OK)
  * - thumbnailUrl이 파일명만(uuid.webp) / /images/board/uuid.webp / http(s)://... / blob:...
  * 어떤 형태든 최종 img src로 변환
  */
@@ -88,7 +88,6 @@ const AdminPage = () => {
 
     try {
       const resp = await axiosAPI.put("/admin/editUser", user);
-      // ✅ 서버 응답으로만 갱신
       if (resp.status === 200) setUsers(resp.data);
       return resp;
     } catch (error) {
@@ -115,7 +114,6 @@ const AdminPage = () => {
   const createUser = async (user) => {
     try {
       const resp = await axiosAPI.post("/admin/createUser", user);
-      // ✅ 서버 응답으로만 갱신
       if (resp.status === 200) setUsers(resp.data);
     } catch (error) {
       console.log("회원 추가 실패", error);
@@ -166,10 +164,10 @@ const AdminPage = () => {
   const [noticePage, setNoticePage] = useState(1);
   const noticesPerPage = 5;
 
-  // ✅ 공지 필터(유저 필터와 동일한 패턴)
+  //  공지 필터
   const [noticeSearch, setNoticeSearch] = useState("");
-  const [noticeStatusFilter, setNoticeStatusFilter] = useState("all"); // all | N | Y
-  const [noticeCategoryFilter, setNoticeCategoryFilter] = useState("all"); // all | 1~5
+  const [noticeStatusFilter, setNoticeStatusFilter] = useState("all"); 
+  const [noticeCategoryFilter, setNoticeCategoryFilter] = useState("all"); 
 
   // --- 공지 조회 ---
   const getNotices = async () => {
@@ -194,7 +192,7 @@ const AdminPage = () => {
   const [modalType, setModalType] = useState(""); // "user" | "notice"
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // ✅ 미리보기: 새로 올린 이미지가 있으면 그걸 우선, 없으면 기존 thumbnailUrl
+  //  미리보기: 새로 올린 이미지가 있으면 그걸 우선, 없으면 기존 thumbnailUrl
   const previewSrc =
     noticeImagePreview ?? resolveImgSrc(selectedItem?.thumbnailUrl);
 
@@ -212,7 +210,6 @@ const AdminPage = () => {
       const resp = await axiosAPI.post("/admin/createBoard", formData);
 
       if (resp.status === 200) {
-        // ✅ 서버 응답으로만 갱신
         setNotices(resp.data);
         setNoticeImageFile(null);
         setNoticeImagePreview(null);
@@ -252,7 +249,6 @@ const AdminPage = () => {
       const resp = await axiosAPI.put("/admin/editBoard", formData);
 
       if (resp.status === 200) {
-        // ✅ 서버 응답으로만 갱신
         setNotices(resp.data);
         setNoticeImageFile(null);
         setNoticeImagePreview(null);
@@ -262,15 +258,15 @@ const AdminPage = () => {
     }
   };
 
-  // ✅ 공지 필터/검색 적용 (유저 filteredUsers랑 동일한 방식)
+  //  공지 필터/검색 적용 
   const filteredNotices = notices
     .filter((n) => {
-      // 상태 필터 (N: 게시중 / Y: 임시저장)
+      // 상태 필터 
       if (noticeStatusFilter === "all") return true;
       return n.boardDelFl === noticeStatusFilter;
     })
     .filter((n) => {
-      // 카테고리 필터 (categoryNo)
+      // 카테고리 필터
       if (noticeCategoryFilter === "all") return true;
       return Number(n.categoryNo) === Number(noticeCategoryFilter);
     })
@@ -281,7 +277,7 @@ const AdminPage = () => {
       return title.toLowerCase().includes(keyword.toLowerCase());
     });
 
-  // ✅ 공지 페이지네이션도 filteredNotices 기준
+ 
   const totalNoticePages = Math.ceil(filteredNotices.length / noticesPerPage);
   const displayedNotices = filteredNotices.slice(
     (noticePage - 1) * noticesPerPage,
@@ -510,7 +506,7 @@ const AdminPage = () => {
               </button>
               
               <hr color="black"/>
-              
+
               {/* 카테고리 필터  */}
               <button
                 className={noticeCategoryFilter === "all" ? "active" : ""}
@@ -616,7 +612,7 @@ const AdminPage = () => {
                     </span>
                   </td>
 
-                  {/* 카테고리 뱃지 (타임리프 classappend와 동일한 효과) */}
+
                   <td>
                     <span
                       className={`category-badge ${
@@ -646,7 +642,7 @@ const AdminPage = () => {
 
           {/* 공지 페이지네이션 */}
           <div className="pagination">
-            {/* ✅ 필터 결과 기준으로 총 개수 */}
+            {/* 필터 결과 기준으로 총 개수 */}
             <span>총 {filteredNotices.length}건 표시</span>
 
             <div className="page-btns">
