@@ -153,6 +153,7 @@ const createBoard = async (notice) => {
     formData.append("boardTitle", notice.boardTitle);
     formData.append("boardContent", notice.boardContent);
     formData.append("boardDelFl", notice.boardDelFl);
+    formData.append("categoryNo", notice.categoryNo);
 
     if (noticeImageFile) formData.append("image", noticeImageFile);
 
@@ -194,7 +195,8 @@ const editBoard = async (notice) => {
     formData.append("boardNo", notice.boardNo);
     formData.append("boardTitle", notice.boardTitle);
     formData.append("boardContent", notice.boardContent);
-    formData.append("boardDelFl", notice.boardDelFl);
+    formData.append("boardDelFl", notice.boardDelFl);  
+    formData.append("categoryNo", notice.categoryNo);
 
     if (noticeImageFile) formData.append("image", noticeImageFile);
 
@@ -286,8 +288,8 @@ const editBoard = async (notice) => {
       boardTitle: "",
       boardContent: "",
       boardDelFl: "",
-      boardViewCount : 0
-      
+      boardViewCount : 0,
+      categoryNo : 1
     });
     setModalType("notice");
     setModalOpen(true);
@@ -473,6 +475,7 @@ const handleImageChange = (e) => {
                 <th>작성일</th>
                 <th>조회수</th>
                 <th>상태</th>
+                <th>카테고리</th>
                 <th>관리</th>
               </tr>
             </thead>
@@ -487,10 +490,11 @@ const handleImageChange = (e) => {
                     <span 
                       className={notice.boardDelFl === "N" ? "badge-success" : "badge-draft"}
                       style={{ cursor: "pointer" }}
-                    >
+                      >
                       {notice.boardDelFl === "N" ? "게시중" : "임시저장"}
                     </span>
                   </td>
+                  <td>{notice.categoryName}</td>
                   <td className="actions">
                     <FaEdit onClick={() => handleEdit(notice, "notice")} />
                     <FaTrash onClick={() => removeBoard(notice.boardNo)} />
@@ -695,6 +699,15 @@ const handleImageChange = (e) => {
                     
                     </>
                   ) : null}
+                  <label>카테고리</label>
+                  <select value={selectedItem.categoryNo} onChange={e=>setSelectedItem({...selectedItem, categoryNo:Number(e.target.value)})}>
+                    <option value={1}>일반</option>
+                    <option value={2}>업데이트</option>
+                    <option value={3}>점검</option>
+                    <option value={4}>이벤트</option>
+                    <option value={5}>긴급</option>
+                  </select>
+
                   <label>이미지</label>
                   <input type="file" accept="image/*" onChange={handleImageChange}/>
                   {previewSrc && (
